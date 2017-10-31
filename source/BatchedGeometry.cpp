@@ -30,6 +30,7 @@ Permission is granted to anyone to use this software for any purpose, including 
 #include <OgreHardwareBuffer.h>
 #include <OgreMaterialManager.h>
 #include <OgreMaterial.h>
+#include <OgreTechnique.h>
 #include <string>
 
 #include "BatchedGeometry.h"
@@ -368,7 +369,7 @@ void BatchedGeometry::clear()
    {
       m_pSceneNode->removeAllChildren();
       if (m_pSceneNode->getParent())
-         m_pSceneNode->getParentSceneNode()->removeAndDestroyChild(m_pSceneNode->getName());
+         m_pSceneNode->getParentSceneNode()->removeAndDestroyChild(m_pSceneNode);
       else
          m_pSceneMgr->destroySceneNode(m_pSceneNode);
 
