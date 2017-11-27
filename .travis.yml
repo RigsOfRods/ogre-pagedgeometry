@@ -1,9 +1,25 @@
 language: c
 sudo: required
 
-before_install:
-  - sudo apt-get install -y cmake pkg-config libogre-1.9-dev libois-dev
+env:
+    matrix:
+      - OS=ubuntu DIST=xenial
+      - OS=ubuntu DIST=yakkety
+      - OS=ubuntu DIST=artful
+
+services:
+  - docker
+
+install:
+  - if [ $TRAVIS_PULL_REQUEST == "false" ] ; then sudo add-apt-repository ppa:jonathonf/python-2.7 -y && sudo apt-get update && sudo apt-get install python2.7 -y ; fi
+  - if [ $TRAVIS_PULL_REQUEST == "false" ] ; then sudo pip install cloudsmith-cli --extra-index-url=https://dl.cloudsmith.io/public/cloudsmith/cli/python/index/ ; fi
 
 script:
-  - cmake .
-  - make -j2
+  - cmake -P Docker/configure-dockerfile.cmake
+  - docker build  -t build/packages .
+
+after_success:
+  - docker run -t --name pkgpackages build/packages make package
+  - docker cp pkgpackages:/src/ ./build/
+  - cd ./build/ && ls
+  - if [ $TRAVIS_PULL_REQUEST == "false" ] ; then cloudsmith push deb rigs-of-rods/rigs-of-rods/$OS/$DIST $(find *deb) ; fi

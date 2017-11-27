@@ -1,0 +1,11 @@
+FROM packpack/packpack:$ENV{OS}-$ENV{DIST}
+
+RUN apt-get update -q
+RUN apt-get install -y cmake pkg-config libogre-1.9-dev libois-dev
+
+RUN mkdir -p /src/
+WORKDIR /src/
+COPY . /src/
+
+RUN cmake -DLIB_BUILD_VERSION=$ENV{TRAVIS_BUILD_NUMBER} .
+RUN make -j2
