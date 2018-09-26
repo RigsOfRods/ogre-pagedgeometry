@@ -320,7 +320,7 @@ StaticBillboardSet::~StaticBillboardSet()
 
    //Delete scene node
    if (mpSceneNode->getParent())
-      mpSceneNode->getParentSceneNode()->removeAndDestroyChild(mpSceneNode->getName());
+      mpSceneNode->getParentSceneNode()->removeAndDestroyChild(mpSceneNode);
    else
       mpSceneNode->getCreator()->destroySceneNode(mpSceneNode);
 }
