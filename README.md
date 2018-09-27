@@ -1,4 +1,4 @@
-# Introduction {#mainpage}
+# Introduction
 
 Although the PagedGeometry engine is fairly simple and easy to use, there are some
 advanced features that may be difficult to learn on you own. This API reference is here

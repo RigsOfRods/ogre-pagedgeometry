@@ -1,0 +1,5 @@
+[generators]
+cmake
+
+[requires]
+OGRE/1.11.2@anotherfoxguy/stable

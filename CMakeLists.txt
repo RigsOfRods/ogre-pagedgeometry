@@ -4,11 +4,11 @@
 # This is the main file where we prepare the general build environment
 # and provide build configuration options.
 ######################################################################
-# cmake system for PagedGeometry updated on 6-10-2017 by Edgar{at}AnotherFoxGuy{DOT}com
+# Cmake system for PagedGeometry updated on 27-9-2018 by Edgar{at}AnotherFoxGuy{DOT}com
 
 cmake_minimum_required( VERSION 3.0.2 )
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake )
-
+set (CMAKE_CXX_STANDARD 11)
 
 # add some functions we use that are shipped with cmake
 INCLUDE(CheckLibraryExists)
@@ -20,7 +20,7 @@ INCLUDE(CheckCSourceCompiles)
 # some versioning things
 SET(LIB_MAJOR_VERSION "1")
 SET(LIB_MINOR_VERSION "2")
-SET(LIB_BUILD_VERSION "0")
+SET(LIB_BUILD_VERSION "1")
 SET(LIB_VERSION "${LIB_MAJOR_VERSION}.${LIB_MINOR_VERSION}.${LIB_BUILD_VERSION}")
 IF(NOT DEFINED LIB_INSTALL_DIR)
   SET(LIB_INSTALL_DIR "lib${LIB_SUFFIX}")
@@ -29,15 +29,24 @@ ENDIF(NOT DEFINED LIB_INSTALL_DIR)
 # define the project
 project(PagedGeometry VERSION ${LIB_VERSION})
 
-# build static libs by default
-SET(BUILD_SHARED_LIBS OFF)
+option(USE_CONAN "Use conan packages" OFF)
+if(USE_CONAN)
+  if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+     message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+     file(DOWNLOAD "https://raw.githubusercontent.com/AnotherFoxGuy/cmake-conan/develop/conan.cmake"
+                   "${CMAKE_BINARY_DIR}/conan.cmake")
+  endif()
+  include(${CMAKE_BINARY_DIR}/conan.cmake)
+  conan_cmake_run(REQUIRES OGRE/1.11.2@anotherfoxguy/stable
+                  BASIC_SETUP CMAKE_TARGETS
+                  BUILD missing)
+endif()
 
-SET(CMAKE_USE_RELATIVE_PATHS OFF)
 
 # setup paths
-SET(RUNTIME_OUTPUT_DIRECTORY "${PagedGeometry_SOURCE_DIR}/bin/")
-SET(LIBRARY_OUTPUT_DIRECTORY "${PagedGeometry_SOURCE_DIR}/lib/")
-SET(ARCHIVE_OUTPUT_DIRECTORY "${PagedGeometry_SOURCE_DIR}/lib/")
+SET(RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/")
+SET(LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/")
+SET(ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/")
 SET(EXECUTABLE_OUTPUT_PATH   ${RUNTIME_OUTPUT_DIRECTORY})
 SET(LIBRARY_OUTPUT_PATH      ${LIBRARY_OUTPUT_DIRECTORY})
 
@@ -46,7 +55,6 @@ SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${RUNTIME_OUTPUT_DIRECTORY})
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${RUNTIME_OUTPUT_DIRECTORY})
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${RUNTIME_OUTPUT_DIRECTORY})
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${RUNTIME_OUTPUT_DIRECTORY})
-
 
 # some optimization flags
 if(WIN32)
@@ -57,7 +65,6 @@ if(WIN32)
   set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}          /MP /Od /Zi")
   # some general flags
   add_definitions("-D_CRT_SECURE_NO_WARNINGS")
-  include_directories(${DirectX_INCLUDE_DIR})
 
   set(CMAKE_EXE_LINKER_FLAGS_DEBUG          "${CMAKE_EXE_LINKER_FLAGS_DEBUG}          /DEBUG /SUBSYSTEM:WINDOWS")
   set(CMAKE_EXE_LINKER_FLAGS_RELEASE        "${CMAKE_EXE_LINKER_FLAGS_RELEASE}        /DEBUG /SUBSYSTEM:WINDOWS /LTCG /OPT:REF")
@@ -70,6 +77,7 @@ endif(WIN32)
 
 # some PG build options
 set(PAGEDGEOMETRY_BUILD_SAMPLES         "FALSE" CACHE BOOL "build the examples")
+set(PAGEDGEOMETRY_BUILD_DOXYGEN         "FALSE" CACHE BOOL "build the documentation")
 set(PAGEDGEOMETRY_ALTERNATE_COORDSYSTEM "FALSE" CACHE BOOL "alternate coordinate system, do not use unless you are very sure about it")
 set(PAGEDGEOMETRY_USE_OGRE_RANDOM       "FALSE" CACHE BOOL "fallback to Ogre's PRNG instead of using our own (not recommended)")
 set(PAGEDGEOMETRY_USER_DATA             "FALSE" CACHE BOOL "ability to attach user data to entities")
@@ -85,14 +93,14 @@ SET(PACKAGE_VERSION "${LIB_VERSION}")
 
 # configuration of the config.h and PkgConfig
 CONFIGURE_FILE(
-    "${PagedGeometry_SOURCE_DIR}/include/PagedGeometryConfig.h.in"
-    "${PagedGeometry_BINARY_DIR}/include/PagedGeometryConfig.h")
+    "${CMAKE_SOURCE_DIR}/include/PagedGeometryConfig.h.in"
+    "${CMAKE_SOURCE_DIR}/include/PagedGeometryConfig.h")
 CONFIGURE_FILE(
-    "${PagedGeometry_SOURCE_DIR}/PagedGeometry.pc.in"
-    "${PagedGeometry_BINARY_DIR}/PagedGeometry.pc"
+    "${CMAKE_SOURCE_DIR}/PagedGeometry.pc.in"
+    "${CMAKE_BINARY_DIR}/PagedGeometry.pc"
     @ONLY)
 # install the PkgConfig file
-INSTALL(FILES "${PagedGeometry_BINARY_DIR}/PagedGeometry.pc" DESTINATION "${LIB_INSTALL_DIR}/pkgconfig")
+INSTALL(FILES "${CMAKE_BINARY_DIR}/PagedGeometry.pc" DESTINATION "${LIB_INSTALL_DIR}/pkgconfig")
 
 # some additional compiler flags
 IF(NOT WIN32)
@@ -119,7 +127,9 @@ IF(NOT WIN32)
 ENDIF()
 
 # --- Ogre 3D graphics engine ---
-find_package( OGRE 1.10 REQUIRED )
+if(NOT USE_CONAN)
+  find_package( OGRE REQUIRED )
+endif()
 
 # now add the directories
 add_subdirectory(source)
@@ -128,41 +138,9 @@ if(PAGEDGEOMETRY_BUILD_SAMPLES)
   add_subdirectory(examples)
 endif(PAGEDGEOMETRY_BUILD_SAMPLES)
 
-
-
-# cpack
-set(CPACK_PACKAGE_DESCRIPTION "PagedGeometry")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "The PagedGeometry engine is an add-on to Ogre which provides highly optimized methods for rendering massive amounts of small meshes, covering a possibly infinite area.")
-set(CPACK_PACKAGE_NAME "pagedgeometry")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libogre-1.9-dev")
-set(CPACK_PACKAGE_CONTACT "Edgar@AnotherFoxGuy.com")
-set(CPACK_PACKAGE_VENDOR "Edgar@AnotherFoxGuy.com")
-SET(CPACK_PACKAGE_VERSION ${LIB_VERSION})
-SET(CPACK_PACKAGE_VERSION_MAJOR ${LIB_MAJOR_VERSION})
-SET(CPACK_PACKAGE_VERSION_MINOR ${LIB_MINOR_VERSION})
-SET(CPACK_PACKAGE_VERSION_PATCH ${LIB_BUILD_VERSION})
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/zlib.txt")
-set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-
-SET(CPACK_GENERATOR ZIP)
-IF(UNIX)
-  SET(CPACK_GENERATOR ${CPACK_GENERATOR};STGZ;TGZ;DEB;RPM)
-ENDIF(UNIX)
-IF(LINUX)
-  SET(CPACK_GENERATOR ${CPACK_GENERATOR};DEB;RPM)
-ENDIF(LINUX)
-IF(MSVC)
-  SET(CPACK_GENERATOR ${CPACK_GENERATOR};NSIS)
-ENDIF(MSVC)
-IF(APPLE)
-  SET(CPACK_GENERATOR ${CPACK_GENERATOR};PackageMaker)
-ENDIF(APPLE)
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${LIB_VERSION}-${CMAKE_SYSTEM_PROCESSOR}")
-include(CPack)
-
 # doxygen stuff
 find_package(Doxygen)
-if (DOXYGEN_FOUND)
+if (DOXYGEN_FOUND AND PAGEDGEOMETRY_BUILD_DOXYGEN)
   message("found doxygen, generating documentation")
   # prepare doxygen configuration file
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
@@ -180,8 +158,8 @@ if (DOXYGEN_FOUND)
   #install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs/html/ DESTINATION doc/pagedgeometry/api)
   # install man pages into packages, scope is now project root..
   #install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/api-doc/man/man3 DESTINATION share/man/man3/ )
-endif (DOXYGEN_FOUND)
+endif ()
 
 # other doc files
 set(DOC_FILES Contributors.txt zlib.txt README.md Todo.txt)
-install(FILES ${DOC_FILES} DESTINATION doc/pagedgeometry/)
+install(FILES ${DOC_FILES} DESTINATION doc/)
