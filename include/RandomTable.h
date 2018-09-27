@@ -76,20 +76,14 @@ inline void RandomTable::generateRandomNumbers()
 #ifdef USE_OGRE_RANDOM
 	// using ogre's Random
 	//srand(0xFACE);
-#ifdef WIN32
-	srand(GetTickCount());
-#else
 	srand(time(NULL));
-#endif
+
 	for(unsigned long i = 0; i < tableSize; i++)
 		table[i] = Ogre::Math::UnitRandom();
 #else
 	// using our Mersenne Twister (preferred way)
-#ifdef WIN32
-	MTRand mtrand(GetTickCount());
-#else
 	MTRand mtrand(time(NULL));
-#endif
+
 	for(unsigned long i = 0; i < tableSize; i++)
 		table[i] = (float)mtrand.rand();
 #endif //USE_OGRE_RANDOM

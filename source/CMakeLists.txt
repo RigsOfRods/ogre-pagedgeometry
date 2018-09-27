@@ -1,11 +1,9 @@
 
-include_directories(${PagedGeometry_SOURCE_DIR}/include)
-include_directories(${PagedGeometry_BINARY_DIR}/include)
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
-FILE(GLOB sources *.cpp ${PagedGeometry_SOURCE_DIR}/include/*.h)
+FILE(GLOB sources *.cpp ${CMAKE_SOURCE_DIR}/include/*.h)
 
 set(LIBNAME "PagedGeometry")
-
 ADD_LIBRARY(${LIBNAME} STATIC ${sources})
 
 # install the library
@@ -16,8 +14,7 @@ INSTALL(TARGETS ${LIBNAME}
 )
 
 # install the headers: both source and build headers
-INSTALL(DIRECTORY ${PagedGeometry_SOURCE_DIR}/include/ DESTINATION include/PagedGeometry FILES_MATCHING PATTERN "*.h" PATTERN ".svn" EXCLUDE)
-INSTALL(DIRECTORY ${PagedGeometry_BINARY_DIR}/include/ DESTINATION include/PagedGeometry FILES_MATCHING PATTERN "*.h" PATTERN ".svn" EXCLUDE)
+INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include/PagedGeometry FILES_MATCHING PATTERN "*.h")
 
 # --- Threading support (still needed for GCC even with C++11)
 set( CMAKE_THREAD_PREFER_PTHREAD YES )
@@ -26,9 +23,10 @@ target_link_libraries( ${LIBNAME} PRIVATE
   Threads::Threads
 )
 
-target_link_libraries( ${LIBNAME} PRIVATE
-  ${OGRE_LIBRARIES}
-)
-target_include_directories( ${LIBNAME} PRIVATE
-  ${OGRE_INCLUDE_DIRS}
-)
+# --- Ogre 3D graphics engine ---
+if(USE_CONAN)
+  target_include_directories(${LIBNAME} PRIVATE CONAN_PKG::OGRE)
+  target_link_libraries(${LIBNAME} PRIVATE CONAN_PKG::OGRE)
+else()
+  target_link_libraries(${LIBNAME} PRIVATE OgreMain)
+endif()
