@@ -151,7 +151,7 @@ mFadeInvisibleDist      (0.f)
          }
 
 		 HighLevelGpuProgramPtr vertexShader = HighLevelGpuProgramManager::getSingleton().getByName("Sprite_vp").staticCast<HighLevelGpuProgram>();
-         assert(vertexShader.isNull() && "Sprite_vp already exist");
+         OgreAssert(!vertexShader, "Sprite_vp already exist");
 
          vertexShader = HighLevelGpuProgramManager::getSingleton().createProgram(
             "Sprite_vp", ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, shaderLanguage, GPT_VERTEX_PROGRAM);
@@ -259,7 +259,7 @@ mFadeInvisibleDist      (0.f)
          }
 
 		 HighLevelGpuProgramPtr vertexShader2 = HighLevelGpuProgramManager::getSingleton().getByName("SpriteFade_vp").staticCast<HighLevelGpuProgram>();
-         assert(vertexShader2.isNull() && "SpriteFade_vp already exist");
+         OgreAssert(!vertexShader2, "SpriteFade_vp already exist");
          vertexShader2 = HighLevelGpuProgramManager::getSingleton().createProgram("SpriteFade_vp",
             ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, shaderLanguage, GPT_VERTEX_PROGRAM);
          vertexShader2->setSource(vertexProg2);
@@ -312,7 +312,11 @@ StaticBillboardSet::~StaticBillboardSet()
 
       //Delete vertex shaders and materials if no longer in use
       if (--s_nSelfInstances == 0)
+      {
          s_mapFadedMaterial.clear();  //Delete fade materials
+         HighLevelGpuProgramManager::getSingleton().remove("Sprite_vp");
+         HighLevelGpuProgramManager::getSingleton().remove("SpriteFade_vp");
+      }
    }
    else
       //Remove billboard set
