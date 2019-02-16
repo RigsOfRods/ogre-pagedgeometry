@@ -2,4 +2,4 @@
 cmake
 
 [requires]
-OGRE/1.11.2@anotherfoxguy/stable
+OGRE/1.11.5@anotherfoxguy/stable
