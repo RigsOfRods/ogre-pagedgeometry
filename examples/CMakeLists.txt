@@ -16,9 +16,6 @@ macro(example_app NAME)
   endif()
 endmacro(example_app)
 
-if(OFF)
-# these are still using the TerrainSceneManager from Ogre 1.7
-# need porting for Ogre 1.8+
 example_app(Example1)
 example_app(Example2)
 example_app(Example3)
@@ -29,8 +26,6 @@ example_app(Example7)
 example_app(Example8)
 example_app(Example9)
 example_app(Example10)
-endif()
-
 example_app(Example11)
 
 

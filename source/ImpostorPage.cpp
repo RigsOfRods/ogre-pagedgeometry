@@ -342,7 +342,7 @@ void ImpostorBatch::setBillboardOrigin(BillboardOrigin origin)
 
 String ImpostorBatch::generateEntityKey(Entity *entity)
 {
-	StringUtil::StrStreamType entityKey;
+	Ogre::StringStream entityKey;
 	entityKey << entity->getMesh()->getName();
 	for (unsigned int i = 0; i < entity->getNumSubEntities(); ++i)
    {
@@ -404,9 +404,9 @@ loader(0)
 	//Set up materials
 	for (int o = 0; o < IMPOSTOR_YAW_ANGLES; ++o){
 	for (int i = 0; i < IMPOSTOR_PITCH_ANGLES; ++i){
-		material[i][o] = MaterialManager::getSingleton().create(getUniqueID("ImpostorMaterial"), "Impostors").staticCast<Ogre::Material>();
+		material[i][o] = MaterialManager::getSingleton().create(getUniqueID("ImpostorMaterial"), "Impostors");
 
-		Material *m = material[i][o].getPointer();
+		Material *m = material[i][o].get();
 		Pass *p = m->getTechnique(0)->getPass(0);
 		
 		TextureUnitState *t = p->createTextureUnitState(texture->getName());
@@ -432,7 +432,7 @@ void ImpostorTexture::updateMaterials()
 {
 	for (int o = 0; o < IMPOSTOR_YAW_ANGLES; ++o){
 		for (int i = 0; i < IMPOSTOR_PITCH_ANGLES; ++i){
-			Material *m = material[i][o].getPointer();
+			Material *m = material[i][o].get();
 			Pass *p = m->getTechnique(0)->getPass(0);
 
 			TextureUnitState *t = p->getTextureUnitState(0);
@@ -445,22 +445,16 @@ void ImpostorTexture::updateMaterials()
 ImpostorTexture::~ImpostorTexture()
 {
 	//Delete textures
-	assert(!texture.isNull());
-	String texName(texture->getName());
-		
-	texture.setNull();
 	if (TextureManager::getSingletonPtr())
-		TextureManager::getSingleton().remove(texName);
-	
+		TextureManager::getSingleton().remove(texture);
+	texture.reset();
+
 	//Delete materials
 	for (int o = 0; o < IMPOSTOR_YAW_ANGLES; ++o){
 	for (int i = 0; i < IMPOSTOR_PITCH_ANGLES; ++i){
-		assert (!material[i][o].isNull());
-		String matName(material[i][o]->getName());
-
-		material[i][o].setNull();
 		if (MaterialManager::getSingletonPtr())
-			MaterialManager::getSingleton().remove(matName);
+			MaterialManager::getSingleton().remove(material[i][o]);
+        material[i][o].reset();
 	}
 	}
 	
@@ -470,12 +464,9 @@ ImpostorTexture::~ImpostorTexture()
 
 void ImpostorTexture::regenerate()
 {
-	assert(!texture.isNull());
-	String texName(texture->getName());
-	texture.setNull();
 	if (TextureManager::getSingletonPtr())
-		TextureManager::getSingleton().remove(texName);
-
+		TextureManager::getSingleton().remove(texture);
+	texture.reset();
 	renderTextures(true);
 	updateMaterials();
 }
@@ -504,7 +495,7 @@ void ImpostorTexture::renderTextures(bool force)
 
 	//Set up RTT texture
    Ogre::uint textureSize = ImpostorPage::getImpostorResolution();
-	if (renderTexture.isNull())
+	if (!renderTexture)
    {
 	renderTexture = TextureManager::getSingleton().createManual(getUniqueID("ImpostorTexture"), "Impostors",
 				TEX_TYPE_2D, textureSize * IMPOSTOR_YAW_ANGLES, textureSize * IMPOSTOR_PITCH_ANGLES, 0, PF_A8R8G8B8, TU_RENDERTARGET, loader.get());
@@ -649,6 +640,9 @@ void ImpostorTexture::renderTextures(bool force)
 #ifdef IMPOSTOR_FILE_SAVE
 		//Save RTT to file with respecting the temp dir
 		renderTarget->writeContentsToFile(tempdir + fileNamePNG);
+        // force re-index
+        ResourceGroupManager::getSingleton().removeResourceLocation(tempdir, "Impostors");
+        ResourceGroupManager::getSingleton().addResourceLocation(tempdir, "FileSystem", "Impostors");
 
 		//Load the render into the appropriate texture view
 		texture = TextureManager::getSingleton().load(fileNamePNG, "Impostors", TEX_TYPE_2D, MIP_UNLIMITED);
@@ -689,7 +683,7 @@ void ImpostorTexture::renderTextures(bool force)
 
 #ifdef IMPOSTOR_FILE_SAVE
 	//Delete RTT texture
-	assert(!renderTexture.isNull());
+	assert(renderTexture);
 
 	if (TextureManager::getSingletonPtr())
 		TextureManager::getSingleton().remove(renderTexture);
@@ -698,7 +692,7 @@ void ImpostorTexture::renderTextures(bool force)
 
 String ImpostorTexture::removeInvalidCharacters(String s)
 {
-	StringUtil::StrStreamType s2;
+	Ogre::StringStream s2;
 
 	for (uint32 i = 0; i < s.length(); ++i){
 		char c = s[i];
