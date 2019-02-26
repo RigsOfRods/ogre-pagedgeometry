@@ -78,8 +78,6 @@ void TreeLoader2D::addTree(Entity *entity, const Vector3 &position, Degree yaw, 
 	const Real smallVal = 0.01f;
 	if (pos.x < actualBounds.left-smallVal || pos.x > actualBounds.right+smallVal || pos.z < actualBounds.top-smallVal || pos.z > actualBounds.bottom+smallVal)
 		OGRE_EXCEPT(Exception::ERR_INVALIDPARAMS, "Tree position is out of bounds", "TreeLoader::addTree()");
-	if (scale < minimumScale || scale > maximumScale)
-		OGRE_EXCEPT(Exception::ERR_INVALIDPARAMS, "Tree scale out of range", "TreeLoader::addTree()");
 	#endif
 
 	//If the tree is slightly out of bounds (due to imprecise coordinate conversion), fix it
