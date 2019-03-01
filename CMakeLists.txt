@@ -37,7 +37,7 @@ if(USE_CONAN)
                    "${CMAKE_BINARY_DIR}/conan.cmake")
   endif()
   include(${CMAKE_BINARY_DIR}/conan.cmake)
-  conan_cmake_run(REQUIRES OGRE/1.11.2@anotherfoxguy/stable
+  conan_cmake_run(REQUIRES OGRE/1.11.5@anotherfoxguy/stable
                   BASIC_SETUP CMAKE_TARGETS
                   BUILD missing)
 endif()
