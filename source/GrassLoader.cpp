@@ -130,9 +130,15 @@ void GrassLoader::frameUpdate()
 void GrassLoader::loadPage(PageInfo &page)
 {
 	//Generate meshes
+	bool first = true;
+
 	std::list<GrassLayer*>::iterator it;
 	for (it = layerList.begin(); it != layerList.end(); ++it){
 		GrassLayer *layer = *it;
+
+		if (first)  // once for all layers
+			layer->parent->rTable->resetRandomIndex();
+		first = false;
 
 		// Continue to the next layer if the current page is outside of the layers map boundaries.
 		if(layer->mapBounds.right < page.bounds.left || layer->mapBounds.left > page.bounds.right ||
@@ -853,26 +859,26 @@ unsigned int GrassLayer::_populateGrassList_Uniform(PageInfo page, float *posBuf
 {
 	float *posPtr = posBuff;
 
-	parent->rTable->resetRandomIndex();
+	//parent->rTable->resetRandomIndex();
 
 	//No density map
 	if (!minY && !maxY)
-   {
+	{
 		//No height range
 		for (unsigned int i = 0; i < grassCount; ++i)
-      {
+		{
 			//Pick a random position
 			float x = parent->rTable->getRangeRandom((float)page.bounds.left, (float)page.bounds.right);
 			float z = parent->rTable->getRangeRandom((float)page.bounds.top, (float)page.bounds.bottom);
 
 			//Add to list in within bounds
 			if (!colorMap)
-         {
+			{
 				*posPtr++ = x;
 				*posPtr++ = z;
 			}
-         else if (x >= mapBounds.left && x <= mapBounds.right && z >= mapBounds.top && z <= mapBounds.bottom)
-         {
+			else if (x >= mapBounds.left && x <= mapBounds.right && z >= mapBounds.top && z <= mapBounds.bottom)
+			{
 				*posPtr++ = x;
 				*posPtr++ = z;
 			}
@@ -880,8 +886,8 @@ unsigned int GrassLayer::_populateGrassList_Uniform(PageInfo page, float *posBuf
 			*posPtr++ = parent->rTable->getRangeRandom(0, (float)Math::TWO_PI);
 		}
 	}
-   else
-   {
+	else
+	{
 		//Height range
 		Real min, max;
 		if (minY) min = minY; else min = Math::NEG_INFINITY;
@@ -921,7 +927,7 @@ unsigned int GrassLayer::_populateGrassList_UnfilteredDM(PageInfo page, float *p
 {
 	float *posPtr = posBuff;
 
-	parent->rTable->resetRandomIndex();
+	//parent->rTable->resetRandomIndex();
 
 	//Use density map
 	if (!minY && !maxY){
@@ -994,7 +1000,7 @@ unsigned int GrassLayer::_populateGrassList_BilinearDM(PageInfo page, float *pos
 {
 	float *posPtr = posBuff;
 
-	parent->rTable->resetRandomIndex();
+	//parent->rTable->resetRandomIndex();
 
 	if (!minY && !maxY){
 		//No height range
