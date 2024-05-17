@@ -4,3 +4,5 @@ build/
 lib/
 
 include/PagedGeometryConfig\.h
+
+CMakeUserPresets.json
