@@ -20,7 +20,7 @@ INCLUDE(CheckCSourceCompiles)
 # some versioning things
 SET(LIB_MAJOR_VERSION "1")
 SET(LIB_MINOR_VERSION "2")
-SET(LIB_BUILD_VERSION "1")
+SET(LIB_BUILD_VERSION "2")
 SET(LIB_VERSION "${LIB_MAJOR_VERSION}.${LIB_MINOR_VERSION}.${LIB_BUILD_VERSION}")
 IF(NOT DEFINED LIB_INSTALL_DIR)
   SET(LIB_INSTALL_DIR "lib${LIB_SUFFIX}")
@@ -28,20 +28,6 @@ ENDIF(NOT DEFINED LIB_INSTALL_DIR)
 
 # define the project
 project(PagedGeometry VERSION ${LIB_VERSION})
-
-option(USE_CONAN "Use conan packages" OFF)
-if(USE_CONAN)
-  if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-     message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-     file(DOWNLOAD "https://raw.githubusercontent.com/AnotherFoxGuy/cmake-conan/develop/conan.cmake"
-                   "${CMAKE_BINARY_DIR}/conan.cmake")
-  endif()
-  include(${CMAKE_BINARY_DIR}/conan.cmake)
-  conan_cmake_run(REQUIRES OGRE/1.11.5@anotherfoxguy/stable
-                  BASIC_SETUP CMAKE_TARGETS
-                  BUILD missing)
-endif()
-
 
 # setup paths
 SET(RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/")
@@ -126,9 +112,7 @@ IF(NOT WIN32)
 ENDIF()
 
 # --- Ogre 3D graphics engine ---
-if(NOT USE_CONAN)
-  find_package( OGRE REQUIRED )
-endif()
+find_package( OGRE REQUIRED )
 
 # now add the directories
 add_subdirectory(source)

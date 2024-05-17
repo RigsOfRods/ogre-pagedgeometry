@@ -24,9 +24,4 @@ target_link_libraries( ${LIBNAME} PRIVATE
 )
 
 # --- Ogre 3D graphics engine ---
-if(USE_CONAN)
-  target_include_directories(${LIBNAME} PRIVATE CONAN_PKG::OGRE)
-  target_link_libraries(${LIBNAME} PRIVATE CONAN_PKG::OGRE)
-else()
-  target_link_libraries(${LIBNAME} PRIVATE OgreMain)
-endif()
+target_link_libraries(${LIBNAME} PRIVATE OGRE::OGRE)
