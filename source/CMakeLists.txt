@@ -24,4 +24,9 @@ target_link_libraries( ${LIBNAME} PRIVATE
 )
 
 # --- Ogre 3D graphics engine ---
-target_link_libraries(${LIBNAME} PRIVATE OGRE::OGRE)
+if(TARGET OGRE::OGRE)
+  target_link_libraries(${LIBNAME} PRIVATE OGRE::OGRE)
+else()
+  target_link_libraries(${LIBNAME} PRIVATE ${OGRE_LIBRARIES})
+  target_include_directories(${LIBNAME} PRIVATE ${OGRE_INCLUDE_DIRS})
+endif()
